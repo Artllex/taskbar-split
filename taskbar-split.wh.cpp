@@ -88,7 +88,10 @@ Disable the mod to immediately return to the standard Windows layout.
 #undef GetCurrentTime
 
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Numerics.h>
+#include <winrt/Windows.UI.Composition.h>
 #include <winrt/Windows.UI.Xaml.Automation.h>
+#include <winrt/Windows.UI.Xaml.Hosting.h>
 #include <winrt/Windows.UI.Xaml.Media.h>
 #include <winrt/Windows.UI.Xaml.h>
 #include <winrt/base.h>
@@ -98,6 +101,9 @@ Disable the mod to immediately return to the standard Windows layout.
 
 using namespace winrt::Windows::UI::Xaml;
 namespace media = winrt::Windows::UI::Xaml::Media;
+namespace composition = winrt::Windows::UI::Composition;
+namespace hosting = winrt::Windows::UI::Xaml::Hosting;
+namespace numerics = winrt::Windows::Foundation::Numerics;
 
 struct Settings {
     std::atomic<int> leftPadding{8};
@@ -332,81 +338,77 @@ bool ButtonIsRunning(FrameworkElement const& element) {
     return SUCCEEDED(result) ? running : true;
 }
 
-struct AppliedTransform {
+struct AppliedVisualState {
     winrt::weak_ref<FrameworkElement> element;
-    media::Transform original{nullptr};
-    media::CompositeTransform transform{nullptr};
+    numerics::float3 originalTranslation{};
+    composition::Visual visual{nullptr};
+    numerics::float3 originalScale{};
+    numerics::float3 originalCenterPoint{};
 };
 
-std::unordered_map<void*, AppliedTransform> g_transforms;
+std::unordered_map<void*, AppliedVisualState> g_visualStates;
 
-AppliedTransform* CurrentTransform(FrameworkElement const& element) {
-    auto found = g_transforms.find(winrt::get_abi(element));
-    if (found == g_transforms.end()) {
+AppliedVisualState* CurrentVisualState(FrameworkElement const& element) {
+    auto found = g_visualStates.find(winrt::get_abi(element));
+    if (found == g_visualStates.end()) {
         return nullptr;
     }
-    auto current = element.RenderTransform();
-    if (!current ||
-        winrt::get_abi(current) != winrt::get_abi(found->second.transform)) {
-        g_transforms.erase(found);
+    auto storedElement = found->second.element.get();
+    if (!storedElement || storedElement != element) {
+        g_visualStates.erase(found);
         return nullptr;
     }
     return &found->second;
 }
 
-AppliedTransform& EnsureTransform(FrameworkElement const& element) {
-    if (auto current = CurrentTransform(element)) {
+AppliedVisualState& EnsureVisualState(FrameworkElement const& element) {
+    if (auto current = CurrentVisualState(element)) {
         return *current;
     }
 
-    AppliedTransform applied;
+    AppliedVisualState applied;
     applied.element = element;
-    applied.original = element.RenderTransform();
-    applied.transform = media::CompositeTransform();
-    element.RenderTransform(applied.transform);
-    return g_transforms.emplace(winrt::get_abi(element), std::move(applied))
+    applied.originalTranslation = element.Translation();
+    applied.visual = hosting::ElementCompositionPreview::GetElementVisual(
+        element);
+    applied.originalScale = applied.visual.Scale();
+    applied.originalCenterPoint = applied.visual.CenterPoint();
+    return g_visualStates.emplace(winrt::get_abi(element), std::move(applied))
         .first->second;
 }
 
-double OwnHorizontalShift(AppliedTransform const& applied) {
-    return applied.transform.CenterX() *
-               (1.0 - applied.transform.ScaleX()) +
-           applied.transform.TranslateX();
-}
-
 void PlaceElement(FrameworkElement const& element,
-                  FrameworkElement const& content,
+                  double nativeX,
                   double targetVisualX,
                   double scaleValue) {
-    double oldShift = 0;
-    if (auto current = CurrentTransform(element)) {
-        oldShift = OwnHorizontalShift(*current);
-    }
-    double nativeX = ElementX(element, content) - oldShift;
+    auto& applied = EnsureVisualState(element);
 
-    auto& applied = EnsureTransform(element);
-    double centerX = element.ActualWidth() / 2.0;
-    double centerY = element.ActualHeight() / 2.0;
-    applied.transform.CenterX(centerX);
-    applied.transform.CenterY(centerY);
-    applied.transform.ScaleX(scaleValue);
-    applied.transform.ScaleY(scaleValue);
-    double scaleShift = centerX * (1.0 - scaleValue);
-    applied.transform.TranslateX(targetVisualX - nativeX - scaleShift);
+    auto translation = applied.originalTranslation;
+    translation.x += static_cast<float>(targetVisualX - nativeX);
+    element.Translation(translation);
+
+    auto centerPoint = applied.originalCenterPoint;
+    centerPoint.x = static_cast<float>(element.ActualWidth() / 2.0);
+    centerPoint.y = static_cast<float>(element.ActualHeight() / 2.0);
+    applied.visual.CenterPoint(centerPoint);
+
+    auto scale = applied.originalScale;
+    scale.x *= static_cast<float>(scaleValue);
+    scale.y *= static_cast<float>(scaleValue);
+    applied.visual.Scale(scale);
 }
 
-void RestoreTransforms() {
-    for (auto& [key, applied] : g_transforms) {
+void RestoreVisualStates() {
+    for (auto& [key, applied] : g_visualStates) {
         if (auto element = applied.element.get()) {
-            auto current = element.RenderTransform();
-            if (current &&
-                winrt::get_abi(current) ==
-                    winrt::get_abi(applied.transform)) {
-                element.RenderTransform(applied.original);
+            element.Translation(applied.originalTranslation);
+            if (applied.visual) {
+                applied.visual.Scale(applied.originalScale);
+                applied.visual.CenterPoint(applied.originalCenterPoint);
             }
         }
     }
-    g_transforms.clear();
+    g_visualStates.clear();
 }
 
 struct ButtonInfo {
@@ -447,6 +449,7 @@ void ApplySplitLayout() {
         if (!repeater || !content) {
             return;
         }
+        double repeaterX = ElementX(repeater, content);
 
         auto children = RepeaterElements(repeater);
         std::vector<ButtonInfo> buttons;
@@ -465,7 +468,8 @@ void ApplySplitLayout() {
         if (g_settings.systemButtonsLeft.load()) {
             for (auto const& button : systemButtons) {
                 if (button.ActualWidth() > 0) {
-                    PlaceElement(button, content, leftEdge, 1.0);
+                    double nativeX = repeaterX + button.ActualOffset().x;
+                    PlaceElement(button, nativeX, leftEdge, 1.0);
                     leftEdge += ElementWidth(button);
                 }
             }
@@ -474,12 +478,8 @@ void ApplySplitLayout() {
                 if (button.ActualWidth() <= 0) {
                     continue;
                 }
-                double oldShift = 0;
-                if (auto current = CurrentTransform(button)) {
-                    oldShift = OwnHorizontalShift(*current);
-                }
-                double nativeX = ElementX(button, content) - oldShift;
-                PlaceElement(button, content, nativeX, 1.0);
+                double nativeX = repeaterX + button.ActualOffset().x;
+                PlaceElement(button, nativeX, nativeX, 1.0);
                 leftEdge = std::max(leftEdge,
                                     nativeX + ElementWidth(button));
             }
@@ -529,7 +529,8 @@ void ApplySplitLayout() {
         double x = leftEdge;
         for (auto item : running) {
             if (item->element.ActualWidth() > 0) {
-                PlaceElement(item->element, content, x, 1.0);
+                double nativeX = repeaterX + item->element.ActualOffset().x;
+                PlaceElement(item->element, nativeX, x, 1.0);
             }
             x += item->width * runningStep;
         }
@@ -539,7 +540,9 @@ void ApplySplitLayout() {
             double visualWidth = (*item)->width * pinnedVisualScale;
             x -= visualWidth;
             if ((*item)->element.ActualWidth() > 0) {
-                PlaceElement((*item)->element, content, x,
+                double nativeX =
+                    repeaterX + (*item)->element.ActualOffset().x;
+                PlaceElement((*item)->element, nativeX, x,
                              pinnedVisualScale);
             }
             x += visualWidth;
@@ -592,7 +595,7 @@ LRESULT CALLBACK TaskbarSubclassProc(HWND window, UINT message, WPARAM wParam,
         return 0;
     }
     if (message == RestoreMessage()) {
-        RestoreTransforms();
+        RestoreVisualStates();
         return 0;
     }
     return DefSubclassProc(window, message, wParam, lParam);
@@ -640,10 +643,25 @@ void RequestRefresh() {
 using TaskListButton_UpdateVisualStates_t = void(WINAPI*)(void*);
 TaskListButton_UpdateVisualStates_t TaskListButton_UpdateVisualStates_Original =
     nullptr;
+std::unordered_map<void*, bool> g_lastRunningState;
 
 void WINAPI TaskListButton_UpdateVisualStates_Hook(void* self) {
     TaskListButton_UpdateVisualStates_Original(self);
-    RequestRefresh();
+
+    // UpdateVisualStates also runs for hover, focus and press animations.
+    // Invalidate layout only when the running state itself really changed.
+    if (!TaskListButton_GetIsRunning_Original) {
+        return;
+    }
+    bool running = false;
+    if (FAILED(TaskListButton_GetIsRunning_Original(self, &running))) {
+        return;
+    }
+    auto [entry, inserted] = g_lastRunningState.emplace(self, running);
+    if (!inserted && entry->second != running) {
+        entry->second = running;
+        RequestRefresh();
+    }
 }
 
 bool HookTaskbarHostSymbols() {
@@ -761,7 +779,8 @@ void Wh_ModBeforeUninit() {
 }
 
 void Wh_ModUninit() {
-    g_transforms.clear();
+    g_visualStates.clear();
+    g_lastRunningState.clear();
     g_repeaterCache = nullptr;
 }
 
