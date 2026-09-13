@@ -88,7 +88,6 @@ Disable the mod to immediately return to the standard Windows layout.
 #undef GetCurrentTime
 
 #include <winrt/Windows.Foundation.h>
-#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.UI.Xaml.Automation.h>
 #include <winrt/Windows.UI.Xaml.Media.h>
 #include <winrt/Windows.UI.Xaml.h>
@@ -336,9 +335,7 @@ bool ButtonIsRunning(FrameworkElement const& element) {
 struct AppliedTransform {
     winrt::weak_ref<FrameworkElement> element;
     media::Transform original{nullptr};
-    media::TransformGroup group{nullptr};
-    media::ScaleTransform scale{nullptr};
-    media::TranslateTransform translation{nullptr};
+    media::CompositeTransform transform{nullptr};
 };
 
 std::unordered_map<void*, AppliedTransform> g_transforms;
@@ -349,7 +346,8 @@ AppliedTransform* CurrentTransform(FrameworkElement const& element) {
         return nullptr;
     }
     auto current = element.RenderTransform();
-    if (!current || winrt::get_abi(current) != winrt::get_abi(found->second.group)) {
+    if (!current ||
+        winrt::get_abi(current) != winrt::get_abi(found->second.transform)) {
         g_transforms.erase(found);
         return nullptr;
     }
@@ -364,22 +362,16 @@ AppliedTransform& EnsureTransform(FrameworkElement const& element) {
     AppliedTransform applied;
     applied.element = element;
     applied.original = element.RenderTransform();
-    applied.group = media::TransformGroup();
-    if (applied.original) {
-        applied.group.Children().Append(applied.original);
-    }
-    applied.scale = media::ScaleTransform();
-    applied.translation = media::TranslateTransform();
-    applied.group.Children().Append(applied.scale);
-    applied.group.Children().Append(applied.translation);
-    element.RenderTransform(applied.group);
+    applied.transform = media::CompositeTransform();
+    element.RenderTransform(applied.transform);
     return g_transforms.emplace(winrt::get_abi(element), std::move(applied))
         .first->second;
 }
 
 double OwnHorizontalShift(AppliedTransform const& applied) {
-    return applied.scale.CenterX() * (1.0 - applied.scale.ScaleX()) +
-           applied.translation.X();
+    return applied.transform.CenterX() *
+               (1.0 - applied.transform.ScaleX()) +
+           applied.transform.TranslateX();
 }
 
 void PlaceElement(FrameworkElement const& element,
@@ -395,12 +387,12 @@ void PlaceElement(FrameworkElement const& element,
     auto& applied = EnsureTransform(element);
     double centerX = element.ActualWidth() / 2.0;
     double centerY = element.ActualHeight() / 2.0;
-    applied.scale.CenterX(centerX);
-    applied.scale.CenterY(centerY);
-    applied.scale.ScaleX(scaleValue);
-    applied.scale.ScaleY(scaleValue);
+    applied.transform.CenterX(centerX);
+    applied.transform.CenterY(centerY);
+    applied.transform.ScaleX(scaleValue);
+    applied.transform.ScaleY(scaleValue);
     double scaleShift = centerX * (1.0 - scaleValue);
-    applied.translation.X(targetVisualX - nativeX - scaleShift);
+    applied.transform.TranslateX(targetVisualX - nativeX - scaleShift);
 }
 
 void RestoreTransforms() {
@@ -408,7 +400,8 @@ void RestoreTransforms() {
         if (auto element = applied.element.get()) {
             auto current = element.RenderTransform();
             if (current &&
-                winrt::get_abi(current) == winrt::get_abi(applied.group)) {
+                winrt::get_abi(current) ==
+                    winrt::get_abi(applied.transform)) {
                 element.RenderTransform(applied.original);
             }
         }
