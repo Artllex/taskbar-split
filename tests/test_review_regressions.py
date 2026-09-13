@@ -31,7 +31,7 @@ class ReviewRegressionTests(unittest.TestCase):
         self.assertNotIn("GetElementVisual", SOURCE)
 
     def test_scale_is_left_anchored(self):
-        body = section("void PlaceElement", "void RestoreVisualStates")
+        body = section("void ScaleElement", "void RestoreVisualStates")
         self.assertIn("centerPoint.x = 0;", body)
         for scale in (0.5, 0.75, 1.0):
             width, tray_edge, gap = 44, 1000, 8
@@ -45,10 +45,10 @@ class ReviewRegressionTests(unittest.TestCase):
 
     def test_layout_requires_restore_channel(self):
         body = section("HRESULT WINAPI ArrangeOverride_Hook", "UINT RefreshMessage")
-        self.assertLess(body.index("!g_taskbarSubclassed"), body.index("ApplySplitLayout()"))
+        self.assertLess(body.index("!g_taskbarSubclassed"), body.index("BuildLayoutPlan()"))
 
     def test_full_size_buttons_skip_scale_writes(self):
-        body = section("void PlaceElement", "void RestoreElementState")
+        body = section("void ScaleElement", "void RestoreElementState")
         full_size = body.split("if (scaleValue == 1.0)", 1)[1].split(
             "if (!applied.scaleApplied)", 1)[0]
         self.assertIn("if (applied.scaleApplied)", full_size)
@@ -59,13 +59,44 @@ class ReviewRegressionTests(unittest.TestCase):
         body = section("void PruneVisualStates", "void RestoreVisualStates")
         self.assertIn("!live.count(it->first)", body)
         self.assertLess(body.index("RestoreElementState"), body.index("g_visualStates.erase"))
-        layout = section("void ApplySplitLayout", "using ArrangeOverride_t")
+        layout = section("bool BuildLayoutPlan", "using ArrangeOverride_t")
         self.assertIn("PruneVisualStates(children)", layout)
 
     def test_window_discovery_does_not_write_weak_cache(self):
         body = section("HWND EnsureTaskbarWindow() {", "void RequestRefresh")
         self.assertNotIn("g_repeaterCache =", body)
         self.assertIn("g_repeaterCacheInvalidated = true", body)
+
+    def test_positioning_changes_arrange_rect_not_translation(self):
+        self.assertNotIn("element.Translation(", SOURCE)
+        hook = section("HRESULT WINAPI ElementArrange_Hook", "bool EnsureArrangeHook")
+        self.assertIn("rect.X = found->second.x", hook)
+        self.assertNotIn("VisualTreeHelper", hook)
+        self.assertNotIn("BuildLayoutPlan", hook)
+
+    def test_plan_is_ready_before_native_arrange(self):
+        body = section("HRESULT WINAPI ArrangeOverride_Hook", "UINT RefreshMessage")
+        plan_index = body.index("BuildLayoutPlan()")
+        native_index = body.index("HRESULT result = ArrangeOverride_Original", plan_index)
+        self.assertLess(plan_index, native_index)
+        self.assertGreater(body.index("ScaleElement"), native_index)
+
+    def test_late_subclass_install_is_undone_on_unload(self):
+        for begin, end in (("HWND EnsureTaskbarWindow() {", "void RequestRefresh"),
+                           ("void Wh_ModAfterInit()", "void Wh_ModBeforeUninit()")):
+            body = section(begin, end)
+            self.assertIn("if (g_unloading && g_taskbarSubclassed.exchange(false))", body)
+            self.assertIn("RemoveWindowSubclassFromAnyThread", body)
+
+    def test_overflow_is_appended_to_running_group(self):
+        body = section("bool BuildLayoutPlan", "using ArrangeOverride_t")
+        self.assertIn('L"Taskbar.OverflowToggleButton"', body)
+        self.assertIn("running.push_back(&overflowInfo)", body)
+
+    def test_restore_requests_native_layout(self):
+        body = section("if (message == RestoreMessage())", "HWND EnsureTaskbarWindow() {")
+        self.assertIn("repeater.InvalidateArrange()", body)
+        self.assertIn("repeater.UpdateLayout()", body)
 
 
 if __name__ == "__main__":

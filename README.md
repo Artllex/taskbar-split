@@ -32,7 +32,6 @@ Jeśli układ nie odświeży się od razu, w Windhawk wyłącz i ponownie włąc
 ## Zakres wersji
 
 - Windows 11, pasek poziomy, x64 oraz ścieżka obsługi ARM64.
-- Poprawki 0.2.2 wymagają ponownego testu na Windows; obsługa ARM64 nie została jeszcze potwierdzona na urządzeniu.
 - Obejmuje główny pasek na monitorze podstawowym.
 - Kolejność ikon wewnątrz obu grup jest zachowywana według kolejności Windows.
 - Przy skrajnie dużej liczbie ikon odstępy mogą zostać ścieśnione, a przyciski mogą na siebie nachodzić. Zmniejsz rozmiar prawych ikon lub środkową przerwę, albo odepnij część aplikacji.
@@ -47,7 +46,9 @@ Nie łącz z modami **Start button always on the left**, **Taskbar Start Button 
 
 ## Weryfikacja przed publikacją w katalogu
 
-Pozycjonowanie i skalowanie korzystają obecnie z właściwości renderowania XAML. Natywny mechanizm przepełnienia paska nadal oblicza pierwotny układ; przycisk przepełnienia nie jest przesuwany i może kolidować z grupami.
+Wersja 0.3.0 zmienia rzeczywiste prostokąty układu przycisków poprzez XAML `Arrange`. Skalowanie dotyczy wyłącznie zamkniętych przypiętych przycisków, łącznie z ich podświetleniem. Przycisk przepełnienia trafia za grupę uruchomionych aplikacji; o zawartości menu przepełnienia nadal decyduje Windows.
+
+Taskbar Split pozostaje osobnym modem, ponieważ tworzy układ od lewego Startu do prawego zasobnika, z rozdzieleniem aplikacji uruchomionych i zamkniętych. Centered Origin organizuje okna względem środka ekranu. Wspólna technika pozycjonowania nie oznacza identycznego sposobu użycia.
 
 Na Windows, przy rozmiarach prawych ikon 50%, 75% i 100%, należy sprawdzić:
 
@@ -56,8 +57,10 @@ Na Windows, przy rozmiarach prawych ikon 50%, 75% i 100%, należy sprawdzić:
 - Przeciąganie ikon i miejsca wstawiania między nimi.
 - Przejście przypiętej aplikacji na lewo po uruchomieniu i z powrotem po zamknięciu.
 - Przywrócenie standardowego układu i rozmiaru po wyłączeniu moda.
+- Działanie po ponownym uruchomieniu Eksploratora oraz całego systemu.
+- Ukrycie/pokazanie Wyszukiwania, Widoku zadań i Widżetów; przepełnienie paska przy dużej liczbie aplikacji.
 
-Testy automatyczne nie potwierdzają tych zachowań. Do zgłoszenia w katalogu nadal potrzebny jest rzeczywisty zrzut ekranu działającego moda.
+Testy automatyczne nie potwierdzają tych zachowań. Wersja 0.3.0 wymaga testu na Windows, także na ARM64. Do zgłoszenia w katalogu nadal potrzebny jest rzeczywisty zrzut ekranu działającego moda.
 
 Mod korzysta z nieudokumentowanych elementów wewnętrznych paska Windows 11. Duża aktualizacja Windows może zmienić symbole `Taskbar.View.dll`/`ExplorerExtensions.dll`; w takim przypadku należy wyłączyć mod i zaktualizować jego kod.
 

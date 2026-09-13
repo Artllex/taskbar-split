@@ -14,9 +14,11 @@ def scale(widths, allocation, visual_scale, anchored_left):
 
 
 def positions(left, right, left_start, right_edge, middle_gap, pinned_scale=1.0):
-    available = max(0.0, right_edge - left_start - middle_gap)
     right_visual = [width * pinned_scale for width in right]
     requested = sum(left) + sum(right_visual)
+    span = max(0.0, right_edge - left_start)
+    gap = min(middle_gap, max(0.0, span - requested)) if left and right else 0.0
+    available = span - gap
     if requested > available and requested:
         left_allocation = available * sum(left) / requested
         right_allocation = available - left_allocation
@@ -76,6 +78,17 @@ class LayoutTests(unittest.TestCase):
         left, right = positions([], [], 100, 1000, 48)
         self.assertEqual(left, [])
         self.assertEqual(right, [])
+
+    def test_gap_shrinks_before_icons_overlap(self):
+        left, right = positions([48, 48], [48, 48], 0, 210, 48)
+        self.assertEqual(left, [0, 48])
+        self.assertEqual(right, [114, 162])
+        self.assertEqual(right[0] - (left[-1] + 48), 18)
+
+    def test_overflow_after_running_buttons_keeps_its_space(self):
+        left, right = positions([48, 48, 32], [48], 0, 210, 48, 0.5)
+        self.assertEqual(left[-1], 96)
+        self.assertGreaterEqual(right[0], left[-1] + 32)
 
 
 if __name__ == "__main__":
