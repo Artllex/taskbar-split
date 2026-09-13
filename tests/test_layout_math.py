@@ -3,27 +3,29 @@
 import unittest
 
 
-def scale(widths, allocation, anchored_left):
-    if len(widths) < 2 or sum(widths) <= allocation:
+def scale(widths, allocation, visual_scale, anchored_left):
+    visual_widths = [width * visual_scale for width in widths]
+    if len(widths) < 2 or sum(visual_widths) <= allocation:
         return 1.0
-    fixed = widths[-1] if anchored_left else widths[0]
-    compressible = sum(widths) - fixed
+    fixed = visual_widths[-1] if anchored_left else visual_widths[0]
+    compressible = sum(visual_widths) - fixed
     room = allocation - fixed
     return max(0.0, min(1.0, room / compressible)) if compressible else 1.0
 
 
-def positions(left, right, left_start, right_edge, middle_gap):
+def positions(left, right, left_start, right_edge, middle_gap, pinned_scale=1.0):
     available = max(0.0, right_edge - left_start - middle_gap)
-    requested = sum(left) + sum(right)
+    right_visual = [width * pinned_scale for width in right]
+    requested = sum(left) + sum(right_visual)
     if requested > available and requested:
         left_allocation = available * sum(left) / requested
         right_allocation = available - left_allocation
     else:
         left_allocation = sum(left)
-        right_allocation = sum(right)
+        right_allocation = sum(right_visual)
 
-    left_scale = scale(left, left_allocation, True)
-    right_scale = scale(right, right_allocation, False)
+    left_scale = scale(left, left_allocation, 1.0, True)
+    right_scale = scale(right, right_allocation, pinned_scale, False)
 
     left_x = []
     x = left_start
@@ -34,7 +36,7 @@ def positions(left, right, left_start, right_edge, middle_gap):
     right_x = [None] * len(right)
     x = right_edge
     for index in range(len(right) - 1, -1, -1):
-        width = right[index]
+        width = right[index] * pinned_scale
         x -= width
         right_x[index] = x
         x += width
@@ -52,6 +54,16 @@ class LayoutTests(unittest.TestCase):
         left, right = positions([40, 50, 60], [35, 45, 55], 80, 900, 40)
         self.assertEqual(left, [80, 120, 170])
         self.assertEqual(right, [765, 800, 845])
+
+    def test_scaled_pinned_icons_are_smaller_and_more_dense(self):
+        left, right = positions([48], [48, 48, 48], 100, 1000, 48, 0.75)
+        self.assertEqual(left, [100])
+        self.assertEqual(right, [892, 928, 964])
+        self.assertEqual(right[1] - right[0], 36)
+
+    def test_running_icons_remain_full_size_when_pinned_are_scaled(self):
+        left, _ = positions([48, 48], [48], 100, 1000, 48, 0.5)
+        self.assertEqual(left, [100, 148])
 
     def test_crowded_layout_keeps_outer_icons_inside_edges(self):
         left, right = positions([60] * 5, [60] * 5, 100, 500, 48)
