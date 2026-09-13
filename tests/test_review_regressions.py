@@ -43,6 +43,30 @@ class ReviewRegressionTests(unittest.TestCase):
         self.assertIn("instructions[0] == 0xD503237F", SOURCE)
         self.assertIn("elementOffset = (instructions[3] >> 12) & 0xFF", SOURCE)
 
+    def test_layout_requires_restore_channel(self):
+        body = section("HRESULT WINAPI ArrangeOverride_Hook", "UINT RefreshMessage")
+        self.assertLess(body.index("!g_taskbarSubclassed"), body.index("ApplySplitLayout()"))
+
+    def test_full_size_buttons_skip_scale_writes(self):
+        body = section("void PlaceElement", "void RestoreElementState")
+        full_size = body.split("if (scaleValue == 1.0)", 1)[1].split(
+            "if (!applied.scaleApplied)", 1)[0]
+        self.assertIn("if (applied.scaleApplied)", full_size)
+        self.assertIn("applied.scaleApplied = false;", full_size)
+        self.assertIn("return;", full_size)
+
+    def test_detached_entries_are_restored_before_erasure(self):
+        body = section("void PruneVisualStates", "void RestoreVisualStates")
+        self.assertIn("!live.count(it->first)", body)
+        self.assertLess(body.index("RestoreElementState"), body.index("g_visualStates.erase"))
+        layout = section("void ApplySplitLayout", "using ArrangeOverride_t")
+        self.assertIn("PruneVisualStates(children)", layout)
+
+    def test_window_discovery_does_not_write_weak_cache(self):
+        body = section("HWND EnsureTaskbarWindow() {", "void RequestRefresh")
+        self.assertNotIn("g_repeaterCache =", body)
+        self.assertIn("g_repeaterCacheInvalidated = true", body)
+
 
 if __name__ == "__main__":
     unittest.main()

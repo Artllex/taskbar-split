@@ -32,7 +32,7 @@ Jeśli układ nie odświeży się od razu, w Windhawk wyłącz i ponownie włąc
 ## Zakres wersji
 
 - Windows 11, pasek poziomy, x64 oraz ścieżka obsługi ARM64.
-- Poprawki 0.2.1 wymagają ponownego testu na Windows; obsługa ARM64 nie została jeszcze potwierdzona na urządzeniu.
+- Poprawki 0.2.2 wymagają ponownego testu na Windows; obsługa ARM64 nie została jeszcze potwierdzona na urządzeniu.
 - Obejmuje główny pasek na monitorze podstawowym.
 - Kolejność ikon wewnątrz obu grup jest zachowywana według kolejności Windows.
 - Przy skrajnie dużej liczbie ikon odstępy mogą zostać ścieśnione, a przyciski mogą na siebie nachodzić. Zmniejsz rozmiar prawych ikon lub środkową przerwę, albo odepnij część aplikacji.
@@ -43,7 +43,21 @@ Wyłączenie albo usunięcie moda w Windhawk przywraca standardowy układ Window
 
 ## Zgodność i ważne informacje
 
-Nie łącz z modem **Start button always on the left** ani innymi modami przesuwającymi lub skalującymi te same przyciski. Mogą wzajemnie nadpisywać układ. Odstępy są podawane w jednostkach DIP, które uwzględniają skalowanie ekranu Windows.
+Nie łącz z modami **Start button always on the left**, **Taskbar Start Button Centered Origin** (`taskbar-centered-start-split-icons`) ani innymi modami przesuwającymi lub skalującymi te same przyciski. Mogą wzajemnie nadpisywać układ. Taskbar Split dzieli aplikacje według stanu uruchomienia, a Taskbar Start Button Centered Origin według położenia okien na ekranie. Odstępy są podawane w jednostkach DIP, które uwzględniają skalowanie ekranu Windows.
+
+## Weryfikacja przed publikacją w katalogu
+
+Pozycjonowanie i skalowanie korzystają obecnie z właściwości renderowania XAML. Natywny mechanizm przepełnienia paska nadal oblicza pierwotny układ; przycisk przepełnienia nie jest przesuwany i może kolidować z grupami.
+
+Na Windows, przy rozmiarach prawych ikon 50%, 75% i 100%, należy sprawdzić:
+
+- Kliknięcie środka i brzegów przesuniętej ikony oraz pustego miejsca po jej starej pozycji.
+- Położenie miniatur po najechaniu i menu pod prawym przyciskiem myszy.
+- Przeciąganie ikon i miejsca wstawiania między nimi.
+- Przejście przypiętej aplikacji na lewo po uruchomieniu i z powrotem po zamknięciu.
+- Przywrócenie standardowego układu i rozmiaru po wyłączeniu moda.
+
+Testy automatyczne nie potwierdzają tych zachowań. Do zgłoszenia w katalogu nadal potrzebny jest rzeczywisty zrzut ekranu działającego moda.
 
 Mod korzysta z nieudokumentowanych elementów wewnętrznych paska Windows 11. Duża aktualizacja Windows może zmienić symbole `Taskbar.View.dll`/`ExplorerExtensions.dll`; w takim przypadku należy wyłączyć mod i zaktualizować jego kod.
 
