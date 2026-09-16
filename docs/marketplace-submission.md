@@ -13,7 +13,11 @@ The goal is an edge-anchored launcher/workspace split: running apps at the left,
 
 The submitter confirmed on Windows that left/right dragging works (0.3.14) and Widgets clearance works with system-button placement disabled (0.3.15). 0.3.16 is the publication cleanup of that tested implementation. Exact Windows build, reboot/Explorer restart, both taskbar alignments, all hidden-system-button combinations, full thumbnail/jump-list checks and ARM64 runtime coverage have not been confirmed. We do not claim that full matrix has passed.
 
-A screenshot of the whole working taskbar is still pending; the currently supplied crop shows the earlier overlap bug and is unsuitable as the listing preview.
+## Screenshot
+
+![Taskbar Split: running applications on the left and closed pinned applications on the right](https://raw.githubusercontent.com/Artllex/taskbar-split/main/assets/taskbar-split.png)
+
+Actual screenshot supplied by the submitter, including the small margin above the taskbar.
 
 ---
 
@@ -23,8 +27,7 @@ A screenshot of the whole working taskbar is still pending; the currently suppli
 
 If this pull request updates an existing mod, describe the changes below:
 
-* Changelog item 1...
-* Changelog item 2...
+New mod submission. Current version: 0.3.16; changes and verification are described above.
 
 ## Mod authorship
 
@@ -32,12 +35,13 @@ If this pull request introduces a new mod, please complete the section below.
 
 This mod was created by:
 
-- - [ ] The submitter, without AI assistance
-- - [x] The submitter, with AI assistance
-- - [ ] Claude
-- - [x] ChatGPT
-- - [ ] Gemini
-- - [ ] Another AI (please specify): 
-- - [ ] Other (please specify): 
+- [ ] The submitter, without AI assistance
+- [x] The submitter, with AI assistance
+- [ ] Claude
+- [x] ChatGPT
+- [ ] Gemini
+- [ ] Another AI (please specify):
+- [ ] Other (please specify):
 
 Please select the options that best apply. Your selection does not affect the acceptance criteria, but it helps reviewers understand the context of the code and provide relevant feedback.
+

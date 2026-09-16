@@ -5,6 +5,8 @@
 
 Mod Windhawk dla Windows 11, który dzieli pasek zadań na dwie dynamiczne strefy:
 
+![Taskbar Split: running applications on the left and closed pinned applications on the right](https://raw.githubusercontent.com/Artllex/taskbar-split/main/assets/taskbar-split.png)
+
 `[Start / system] [uruchomione aplikacje]  <wolna przestrzeń>  [zamknięte przypięte] [zasobnik / zegar]`
 
 Gdy przypięta aplikacja zostaje uruchomiona, jej przycisk przechodzi do lewej strefy. Po zamknięciu wraca do prawej. Mod nie odpina aplikacji i nie modyfikuje zapisanej przez Windows kolejności przypięć — zmienia wyłącznie bieżący układ wizualny paska.
@@ -65,7 +67,7 @@ Na Windows, przy rozmiarach prawych ikon 50%, 75% i 100%, należy sprawdzić:
 
 Użytkownik potwierdził na Windows działanie przeciągania obu grup (0.3.14) i poprawki rezerwowania miejsca dla pogody przy wyłączonym Keep system buttons on the left (0.3.15). Wersja 0.3.16 usuwa diagnostyczny zapis plików i dodatkowy timer śledzenia; zachowuje mechanizm stabilizacji upuszczenia. Przechodzi 30 testów lokalnych, w tym wybrane funkcje C++ kompilowane ze stubami. To nie jest pełna kompilacja Windows ani weryfikacja ARM64.
 
-Nie potwierdzono jeszcze pełnej macierzy testów powyżej, w szczególności restartu systemu/Eksploratora, obu wyrównań paska i ARM64. Do zgłoszenia nadal potrzebny jest zrzut całego działającego paska.
+Nie potwierdzono jeszcze pełnej macierzy testów powyżej, w szczególności restartu systemu/Eksploratora, obu wyrównań paska i ARM64. Zrzut powyżej pochodzi z działającego paska użytkownika.
 
 Mod korzysta z nieudokumentowanych elementów wewnętrznych paska Windows 11. Duża aktualizacja Windows może zmienić symbole `Taskbar.View.dll`/`ExplorerExtensions.dll`; w takim przypadku należy wyłączyć mod i zaktualizować jego kod.
 
