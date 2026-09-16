@@ -1,9 +1,25 @@
 # Historia zmian
 
+## 0.3.16
+
+- Przeciąganie i zamiana miejsc w obrębie obu sekcji, z podglądem i anulowaniem przez Escape.
+- Naprawa opóźnionego powrotu/przelotu ikony po upuszczeniu.
+- Bezpośrednie sortowanie prawej grupy według zapisanej kolejności.
+- Rezerwowanie miejsca przed prawostronnym widgetem pogody.
+- Domyślne odstępy 0 / 0 / 8 / 48 DIP i skala prawej grupy 90%.
+- Usunięcie diagnostycznego zapisu plików po przeciąganiu.
+- GPL-3.0 wraz z informacjami o źródłach; 30 testów lokalnych.
+
+## 0.2.1–0.3.15 — iteracje testowe
+
+- Korekta licencji do GPL-3.0: wcześniejsza deklaracja niezależnego pochodzenia i MIT była błędna.
+- Pozycjonowanie przez XAML Arrange, poprawki ABI, cyklu życia i obsługi ARM64.
+- Iteracyjne testy przeciągania na Windows i poprawki po analizie logów.
+
 ## 0.2.0 — 2026-09-13
 
-- Niezależna implementacja układu oparta na transformacjach XAML.
-- Zmiana licencji bieżącej wersji na MIT.
+- Testowa implementacja układu oparta na transformacjach XAML.
+- Ówczesne oznaczenie MIT zostało skorygowane na GPL-3.0 w 0.2.1.
 - Opcjonalne skalowanie zamkniętych przypiętych ikon w zakresie 50–100%.
 - Automatyczny powrót ikony do rozmiaru 100% po uruchomieniu aplikacji.
 - Gęstość prawej grupy zmienia się razem ze skalą ikon.

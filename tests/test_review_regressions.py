@@ -27,8 +27,25 @@ class ReviewRegressionTests(unittest.TestCase):
         self.assertIn("ButtonIsRunning(element)", body)
 
     def test_no_strong_composition_visual_in_global_state(self):
-        self.assertNotIn("composition::Visual", SOURCE)
-        self.assertNotIn("GetElementVisual", SOURCE)
+        # Drop cleanup may use stack-local visuals; it must not retain them
+        # in globals, whose destructors can run after the UI thread exits.
+        state = section("struct SectionGesture", "bool g_cancelingNativePress")
+        self.assertNotIn("Composition::Visual", state)
+        self.assertNotIn("GetElementVisual", state)
+        self.assertIn("[[clang::no_destroy]] std::optional<PendingDrop>", state)
+
+    def test_drop_waits_for_the_buttons_successful_native_arrange(self):
+        queue = section("void QueueDrop", "void CancelSectionGesture")
+        self.assertNotIn("source.Translation(", queue)
+        self.assertNotIn("source.Transitions(", queue)
+        self.assertIn("g_pendingDrop.emplace", queue)
+        hook = section("HRESULT WINAPI ElementArrange_Hook", "bool EnsureArrangeHook")
+        self.assertLess(hook.index("HRESULT result = ElementArrange_Original"),
+                        hook.index("CompletePendingDrop(arrangedElement)"))
+        self.assertIn("SUCCEEDED(result) && arrangedElement", hook)
+        complete = section("void CompletePendingDrop(FrameworkElement const& element) {", "void QueueDrop")
+        self.assertIn("g_pendingDrop->gesture.source.get() != element", complete)
+        self.assertIn("element.Translation(pending.gesture.translation)", complete)
 
     def test_scale_is_left_anchored(self):
         body = section("void ScaleElement", "void RestoreVisualStates")
@@ -68,11 +85,44 @@ class ReviewRegressionTests(unittest.TestCase):
         self.assertIn("g_repeaterCacheInvalidated = true", body)
 
     def test_positioning_changes_arrange_rect_not_translation(self):
-        self.assertNotIn("element.Translation(", SOURCE)
+        layout = section("bool BuildLayoutPlan", "using ArrangeOverride_t")
+        self.assertNotIn(".Translation(", layout)
         hook = section("HRESULT WINAPI ElementArrange_Hook", "bool EnsureArrangeHook")
         self.assertIn("rect.X = found->second.x", hook)
         self.assertNotIn("VisualTreeHelper", hook)
         self.assertNotIn("BuildLayoutPlan", hook)
+
+    def test_normal_click_does_not_replay_or_release_native_capture(self):
+        pressed = section("HRESULT WINAPI PointerPressed_Hook", "HRESULT WINAPI PointerMoved_Hook")
+        self.assertIn("HRESULT result = PointerPressed_Original(self, rawArgs)", pressed)
+        self.assertNotIn("args.Handled(true)", pressed)
+        released = section("HRESULT WINAPI PointerReleased_Hook", "HRESULT WINAPI PointerCaptureLost_Hook")
+        click = released.split("if (!g_sectionGesture->dragged)", 1)[1].split("auto gesture", 1)[0]
+        self.assertIn("PointerReleased_Original(self, rawArgs)", click)
+        self.assertNotIn("ReleasePointerCapture", click)
+        self.assertNotIn("PointerPressed_Original", released)
+        self.assertNotIn("Input::PointerRoutedEventArgs press", SOURCE)
+
+    def test_drag_visual_is_updated_live_and_restored(self):
+        moved = section("HRESULT WINAPI PointerMoved_Hook", "HRESULT WINAPI PointerReleased_Hook")
+        self.assertIn("UpdateDragPreview()", moved)
+        self.assertIn("FinishSectionReorder", moved)
+        restore = section("void RestoreGestureVisual", "void CancelSectionGesture")
+        self.assertIn("source.Translation(gesture.translation)", restore)
+        self.assertLess(restore.index("repeater.UpdateLayout()"),
+                        restore.index("source.Transitions(gesture.transitions)"))
+        self.assertLess(restore.index("visual.ImplicitAnimations(nullptr)"),
+                        restore.index("repeater.UpdateLayout()"))
+        settle = restore.index("repeater.UpdateLayout()")
+        stop = restore.index('visual.StopAnimation(L"Offset")', settle)
+        clear = restore.index("source.Translation(gesture.translation)")
+        self.assertLess(settle, stop)
+        self.assertLess(stop, clear)
+        preview = section("void UpdateDragPreview() {", "void RestoreGestureVisual")
+        self.assertNotIn("ElementX(", preview)
+        self.assertNotIn("source.Translation()", preview)
+        hook = section("HRESULT WINAPI ElementArrange_Hook", "bool EnsureArrangeHook")
+        self.assertLess(hook.index("rect.X = found->second.x"), hook.index("KeepDraggedSlot"))
 
     def test_plan_is_ready_before_native_arrange(self):
         body = section("HRESULT WINAPI ArrangeOverride_Hook", "UINT RefreshMessage")

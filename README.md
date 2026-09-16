@@ -11,7 +11,7 @@ Gdy przypięta aplikacja zostaje uruchomiona, jej przycisk przechodzi do lewej s
 
 ## Instalacja
 
-1. Pobierz plik `taskbar-split.wh.cpp` z sekcji [Releases](https://github.com/Artllex/taskbar-split/releases).
+1. Pobierz aktualny [taskbar-split.wh.cpp](https://github.com/Artllex/taskbar-split/raw/refs/heads/main/taskbar-split.wh.cpp).
 2. Zainstaluj i uruchom Windhawk.
 3. Wejdź w **Explore** → **Create a new mod**.
 4. Usuń przykładowy kod i wklej całą zawartość pliku `taskbar-split.wh.cpp`.
@@ -29,11 +29,14 @@ Jeśli układ nie odświeży się od razu, w Windhawk wyłącz i ponownie włąc
 - **Closed pinned icon size** — rozmiar ikon w prawej grupie, od 50% do 100%. Mniejsza wartość jednocześnie gęściej je układa. Po uruchomieniu aplikacji ikona wraca do 100%.
 - **Keep system buttons on the left** — wymusza lewą pozycję Start/Wyszukaj/Widżety/Widok zadań. Zalecane.
 
+Wartości domyślne: Left edge padding **0**, Gap after system buttons **0**, Gap before tray **8**, Minimum middle gap **48**, Closed pinned icon size **90%**. Zapisane ustawienia istniejącej instalacji pozostają zachowane. Gdy przyciski systemowe zachowują położenie Windows, prawa grupa kończy się przed prawostronnym widgetem pogody.
+
 ## Zakres wersji
 
 - Windows 11, pasek poziomy, x64 oraz ścieżka obsługi ARM64.
 - Obejmuje główny pasek na monitorze podstawowym.
-- Kolejność ikon wewnątrz obu grup jest zachowywana według kolejności Windows.
+- Przeciąganie zmienia kolejność tylko wewnątrz danej sekcji, z podglądem podczas ruchu. Escape anuluje zmianę.
+- Kolejność jest zapamiętywana w sesji; odtworzenie przycisków przez Windows może ją zresetować. Nowo uruchomiona aplikacja trafia na koniec lewej grupy.
 - Przy skrajnie dużej liczbie ikon odstępy mogą zostać ścieśnione, a przyciski mogą na siebie nachodzić. Zmniejsz rozmiar prawych ikon lub środkową przerwę, albo odepnij część aplikacji.
 
 ## Bezpieczne wycofanie
@@ -60,7 +63,9 @@ Na Windows, przy rozmiarach prawych ikon 50%, 75% i 100%, należy sprawdzić:
 - Działanie po ponownym uruchomieniu Eksploratora oraz całego systemu.
 - Ukrycie/pokazanie Wyszukiwania, Widoku zadań i Widżetów; przepełnienie paska przy dużej liczbie aplikacji.
 
-Testy automatyczne nie potwierdzają tych zachowań. Wersja 0.3.0 wymaga testu na Windows, także na ARM64. Do zgłoszenia w katalogu nadal potrzebny jest rzeczywisty zrzut ekranu działającego moda.
+Użytkownik potwierdził na Windows działanie przeciągania obu grup (0.3.14) i poprawki rezerwowania miejsca dla pogody przy wyłączonym Keep system buttons on the left (0.3.15). Wersja 0.3.16 usuwa diagnostyczny zapis plików i dodatkowy timer śledzenia; zachowuje mechanizm stabilizacji upuszczenia. Przechodzi 30 testów lokalnych, w tym wybrane funkcje C++ kompilowane ze stubami. To nie jest pełna kompilacja Windows ani weryfikacja ARM64.
+
+Nie potwierdzono jeszcze pełnej macierzy testów powyżej, w szczególności restartu systemu/Eksploratora, obu wyrównań paska i ARM64. Do zgłoszenia nadal potrzebny jest zrzut całego działającego paska.
 
 Mod korzysta z nieudokumentowanych elementów wewnętrznych paska Windows 11. Duża aktualizacja Windows może zmienić symbole `Taskbar.View.dll`/`ExplorerExtensions.dll`; w takim przypadku należy wyłączyć mod i zaktualizować jego kod.
 
