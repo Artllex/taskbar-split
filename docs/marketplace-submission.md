@@ -1,3 +1,13 @@
+## Review follow-up — 0.3.18
+
+- Drag activation now requires horizontal displacement of at least 5 DIPs; vertical drift alone preserves the normal click path.
+- Explicit capture ownership is recorded only after successful CapturePointer. Cleanup never releases ButtonBase capture for an ordinary click or a failed acquisition.
+- Added default-on Enable section dragging. Disabled, new presses use the native path without arming our gesture layer; existing gestures finish normally. Split positioning remains active; native dragging does not enforce section boundaries.
+- Reorganized the embedded README into layout, dragging, persistence and Widgets paragraphs; clarified the closing-app sentence and Windows Start menu alignment.
+- The bounded post-drop animation settling mechanism is unchanged.
+
+Local regression checks do not substitute for Windows runtime verification. The maintainer decision about a separate mod remains unchanged.
+
 ## Response to the latest review (0.3.17)
 
 **Items 3 and 4:** App ranks now use the taskbar's `Appid: ` automation identity, read afresh rather than cached by XAML address. No caption/HWND/pointer fallback is persisted. Separate bounded, versioned lists are stored with `Wh_SetStringValue` after a completed drag and read on initialization of the primary layout. Unknown identities retain native input; separate windows of the same app share a rank. Reordering a visible subset preserves entries outside that subset. Live weak element lists are only gesture views rebuilt from these IDs, not authoritative ranks.

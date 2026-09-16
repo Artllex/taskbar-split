@@ -75,6 +75,8 @@ Mod korzysta z nieudokumentowanych elementów wewnętrznych paska Windows 11. Du
 
 Kod bieżącej wersji jest udostępniany na licencji [GPL-3.0](LICENSE). Wykorzystuje techniki i fragmenty z modów **taskbar-labels** i **taskbar-start-button-position** Michaela Maltseva (m417z) oraz **Taskbar Start Button Centered Origin** autorstwa rick/rycalvo (GPL-3.0). Technika odnajdywania hosta XAML paska korzysta również z **Taskbar multi-tray** autorstwa EDM115 oraz **Island Media Controls** autorstwa usho (MIT); ich informacja licencyjna pozostaje w kodzie.
 
-## Wersja 0.3.17
+## Wersja 0.3.18
 
 Dodano trwałą kolejność według Appid, pomijanie układów innych pasków przed kosztownym przeliczeniem oraz buforowanie obiektu widgetu w obrębie głównego TaskbarFrame. Testy modeli C++ przechodzą; nowe odczyty identyfikatora i rozpoznawanie układu wymagają potwierdzenia na Windows.
+
+Opcja **Enable section dragging** (domyślnie włączona) steruje przeciąganiem w obrębie sekcji. Po wyłączeniu mysz obsługuje Windows; podział paska pozostaje aktywny, ale granice przeciągania nie są wymuszane. Zmiana obowiązuje od następnego gestu.

@@ -11,6 +11,24 @@ def section(start, end):
 
 
 class ReviewRegressionTests(unittest.TestCase):
+    def test_vertical_drift_does_not_arm_drag(self):
+        body = section("HRESULT WINAPI PointerMoved_Hook", "HRESULT WINAPI PointerReleased_Hook")
+        self.assertIn("std::abs(position.X - g_sectionGesture->origin.X) >= 5", body)
+        self.assertNotIn("position.Y - g_sectionGesture->origin.Y", body)
+
+    def test_cleanup_preserves_native_click_capture(self):
+        body = section("void RestoreGestureVisual", "void FlushPendingDrop")
+        self.assertIn("if (gesture.ownsPointerCapture)", body)
+        self.assertLess(body.index("if (gesture.ownsPointerCapture)"), body.index("ReleasePointerCapture"))
+        moved = section("HRESULT WINAPI PointerMoved_Hook", "HRESULT WINAPI PointerReleased_Hook")
+        self.assertLess(moved.index("if (!source.CapturePointer"), moved.index("ownsPointerCapture = true"))
+
+    def test_disabled_drag_bypasses_custom_press(self):
+        body = section("HRESULT WINAPI PointerPressed_Hook", "HRESULT WINAPI PointerMoved_Hook")
+        disabled = body.split("if (!g_settings.sectionDragging.load()) {", 1)[1].split("}", 1)[0]
+        self.assertIn("return PointerPressed_Original(self, rawArgs)", disabled)
+        self.assertIn("- sectionDragging: true", SOURCE)
+
     def test_unloading_is_set_before_restoration(self):
         body = section("void Wh_ModBeforeUninit()", "void Wh_ModUninit()")
         self.assertLess(body.index("g_unloading = true"), body.index("SendMessageW"))

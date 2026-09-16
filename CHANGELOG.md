@@ -1,5 +1,11 @@
 # Historia zmian
 
+## 0.3.18
+
+- Arm section dragging only after horizontal movement.
+- Release pointer capture only when acquired by the mod.
+- Add default-on section dragging switch and clarify README.
+
 ## 0.3.17
 
 - Zapis kolejności według Appid w magazynie Windhawk po zakończeniu przeciągania.
