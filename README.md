@@ -38,7 +38,9 @@ Wartości domyślne: Left edge padding **0**, Gap after system buttons **0**, Ga
 - Windows 11, pasek poziomy, x64 oraz ścieżka obsługi ARM64.
 - Obejmuje główny pasek na monitorze podstawowym.
 - Przeciąganie zmienia kolejność tylko wewnątrz danej sekcji, z podglądem podczas ruchu. Escape anuluje zmianę.
-- Kolejność jest zapamiętywana w sesji; odtworzenie przycisków przez Windows może ją zresetować. Nowo uruchomiona aplikacja trafia na koniec lewej grupy.
+- Kolejność aplikacji jest zapisywana po upuszczeniu ikony w magazynie moda Windhawk, osobno dla obu sekcji. Odtworzenie kontenera XAML nie przenosi kolejności na inną aplikację.
+- Lewy przycisk myszy celowo obsługuje przeciąganie wewnątrz sekcji zamiast natywnej zmiany przypięć Windows. Przyciski bez identyfikatora `Appid: ` zachowują natywną obsługę i nie są zapisywane. Osobne okna tej samej aplikacji mają wspólną rangę; zapis jest ograniczony do 256 aplikacji na sekcję.
+- Nowo uruchomiona aplikacja przechodząca z prawej grupy trafia na koniec lewej grupy.
 - Przy skrajnie dużej liczbie ikon odstępy mogą zostać ścieśnione, a przyciski mogą na siebie nachodzić. Zmniejsz rozmiar prawych ikon lub środkową przerwę, albo odepnij część aplikacji.
 
 ## Bezpieczne wycofanie
@@ -72,3 +74,7 @@ Nie potwierdzono jeszcze pełnej macierzy testów powyżej, w szczególności re
 Mod korzysta z nieudokumentowanych elementów wewnętrznych paska Windows 11. Duża aktualizacja Windows może zmienić symbole `Taskbar.View.dll`/`ExplorerExtensions.dll`; w takim przypadku należy wyłączyć mod i zaktualizować jego kod.
 
 Kod bieżącej wersji jest udostępniany na licencji [GPL-3.0](LICENSE). Wykorzystuje techniki i fragmenty z modów **taskbar-labels** i **taskbar-start-button-position** Michaela Maltseva (m417z) oraz **Taskbar Start Button Centered Origin** autorstwa rick/rycalvo (GPL-3.0). Technika odnajdywania hosta XAML paska korzysta również z **Taskbar multi-tray** autorstwa EDM115 oraz **Island Media Controls** autorstwa usho (MIT); ich informacja licencyjna pozostaje w kodzie.
+
+## Wersja 0.3.17
+
+Dodano trwałą kolejność według Appid, pomijanie układów innych pasków przed kosztownym przeliczeniem oraz buforowanie obiektu widgetu w obrębie głównego TaskbarFrame. Testy modeli C++ przechodzą; nowe odczyty identyfikatora i rozpoznawanie układu wymagają potwierdzenia na Windows.

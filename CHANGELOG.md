@@ -1,5 +1,14 @@
 # Historia zmian
 
+## 0.3.17
+
+- Zapis kolejności według Appid w magazynie Windhawk po zakończeniu przeciągania.
+- Brak dziedziczenia rangi przez inną aplikację wykorzystującą stary kontener XAML.
+- Zachowanie pozycji aplikacji poza widocznym fragmentem listy.
+- Pomijanie wtórnych układów przed przeliczaniem głównego paska.
+- Pamięć podręczna widgetu i ograniczenie wyszukiwania do TaskbarFrame, także gdy widgetu nie ma.
+- Doprecyzowanie celowego zastąpienia natywnego przeciągania i ograniczeń zapisu.
+
 ## 0.3.16
 
 - Przeciąganie i zamiana miejsc w obrębie obu sekcji, z podglądem i anulowaniem przez Escape.
