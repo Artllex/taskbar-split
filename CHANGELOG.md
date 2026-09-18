@@ -2,9 +2,12 @@
 
 ## 0.3.18
 
-- Arm section dragging only after horizontal movement.
-- Release pointer capture only when acquired by the mod.
-- Add default-on section dragging switch and clarify README.
+- Opublikowano mod w oficjalnym katalogu Windhawk.
+- Przeciąganie rozpoczyna się wyłącznie po ruchu poziomym, dzięki czemu pionowe drgnięcie nie przechwytuje kliknięcia.
+- Przechwycenie wskaźnika jest zwalniane tylko wtedy, gdy zostało przejęte przez mod.
+- Dodano domyślnie włączoną opcję **Enable section dragging**.
+- Potwierdzono na Windows x64 klikanie, przeciąganie obu grup, miniatury, menu kontekstowe, restart Eksploratora, oba wyrównania paska i ukrywanie przycisków systemowych.
+- Obie kontrole CI Windhawk i 33 testy lokalne zakończyły się powodzeniem.
 
 ## 0.3.17
 

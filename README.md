@@ -3,7 +3,7 @@
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Tests](https://github.com/Artllex/taskbar-split/actions/workflows/tests.yml/badge.svg)](https://github.com/Artllex/taskbar-split/actions/workflows/tests.yml)
 
-Mod Windhawk dla Windows 11, który dzieli pasek zadań na dwie dynamiczne strefy:
+Oficjalnie opublikowany mod Windhawk dla Windows 11, który dzieli pasek zadań na dwie dynamiczne strefy:
 
 ![Taskbar Split: running applications on the left and closed pinned applications on the right](https://raw.githubusercontent.com/Artllex/taskbar-split/main/assets/taskbar-split.png)
 
@@ -13,12 +13,15 @@ Gdy przypięta aplikacja zostaje uruchomiona, jej przycisk przechodzi do lewej s
 
 ## Instalacja
 
-1. Pobierz aktualny [taskbar-split.wh.cpp](https://github.com/Artllex/taskbar-split/raw/refs/heads/main/taskbar-split.wh.cpp).
-2. Zainstaluj i uruchom Windhawk.
-3. Wejdź w **Explore** → **Create a new mod**.
-4. Usuń przykładowy kod i wklej całą zawartość pliku `taskbar-split.wh.cpp`.
-5. Kliknij **Compile Mod**, a następnie **Exit Editing Mode**.
-6. Włącz mod. Pasek powinien przebudować się bez restartowania komputera.
+1. Zainstaluj i uruchom Windhawk.
+2. Wejdź w **Explore**.
+3. Wyszukaj **Taskbar Split: Running Left, Pinned Right**.
+4. Kliknij **Install**.
+
+Wersja opublikowana w katalogu jest utrzymywana w
+[oficjalnym repozytorium Windhawk](https://github.com/ramensoftware/windhawk-mods/blob/main/mods/taskbar-split.wh.cpp).
+Plik w tym repozytorium służy do rozwoju następnej wersji i może czasowo
+wyprzedzać wydanie dostępne w katalogu.
 
 Jeśli układ nie odświeży się od razu, w Windhawk wyłącz i ponownie włącz mod. Nie trzeba ręcznie restartować `explorer.exe`.
 
@@ -51,32 +54,30 @@ Wyłączenie albo usunięcie moda w Windhawk przywraca standardowy układ Window
 
 Nie łącz z modami **Start button always on the left**, **Taskbar Start Button Centered Origin** (`taskbar-centered-start-split-icons`) ani innymi modami przesuwającymi lub skalującymi te same przyciski. Mogą wzajemnie nadpisywać układ. Taskbar Split dzieli aplikacje według stanu uruchomienia, a Taskbar Start Button Centered Origin według położenia okien na ekranie. Odstępy są podawane w jednostkach DIP, które uwzględniają skalowanie ekranu Windows.
 
-## Weryfikacja przed publikacją w katalogu
+## Weryfikacja wydania 0.3.18
 
 Wersja 0.3.0 zmienia rzeczywiste prostokąty układu przycisków poprzez XAML `Arrange`. Skalowanie dotyczy wyłącznie zamkniętych przypiętych przycisków, łącznie z ich podświetleniem. Przycisk przepełnienia trafia za grupę uruchomionych aplikacji; o zawartości menu przepełnienia nadal decyduje Windows.
 
 Taskbar Split pozostaje osobnym modem, ponieważ tworzy układ od lewego Startu do prawego zasobnika, z rozdzieleniem aplikacji uruchomionych i zamkniętych. Centered Origin organizuje okna względem środka ekranu. Wspólna technika pozycjonowania nie oznacza identycznego sposobu użycia.
 
-Na Windows, przy rozmiarach prawych ikon 50%, 75% i 100%, należy sprawdzić:
+Na Windows x64 potwierdzono zwykłe kliknięcia, przeciąganie w obu sekcjach,
+miniatury po najechaniu, menu prawego przycisku, działanie po restarcie
+Eksploratora, lewe i środkowe wyrównanie paska oraz ukrywanie i przywracanie
+Wyszukiwania, Widoku zadań i Widżetów. Potwierdzono też rezerwowanie miejsca
+dla pogody po wyłączeniu **Keep system buttons on the left**.
 
-- Kliknięcie środka i brzegów przesuniętej ikony oraz pustego miejsca po jej starej pozycji.
-- Położenie miniatur po najechaniu i menu pod prawym przyciskiem myszy.
-- Przeciąganie ikon i miejsca wstawiania między nimi.
-- Przejście przypiętej aplikacji na lewo po uruchomieniu i z powrotem po zamknięciu.
-- Przywrócenie standardowego układu i rozmiaru po wyłączeniu moda.
-- Działanie po ponownym uruchomieniu Eksploratora oraz całego systemu.
-- Ukrycie/pokazanie Wyszukiwania, Widoku zadań i Widżetów; przepełnienie paska przy dużej liczbie aplikacji.
-
-Użytkownik potwierdził na Windows działanie przeciągania obu grup (0.3.14) i poprawki rezerwowania miejsca dla pogody przy wyłączonym Keep system buttons on the left (0.3.15). Wersja 0.3.16 usuwa diagnostyczny zapis plików i dodatkowy timer śledzenia; zachowuje mechanizm stabilizacji upuszczenia. Przechodzi 30 testów lokalnych, w tym wybrane funkcje C++ kompilowane ze stubami. To nie jest pełna kompilacja Windows ani weryfikacja ARM64.
-
-Nie potwierdzono jeszcze pełnej macierzy testów powyżej, w szczególności restartu systemu/Eksploratora, obu wyrównań paska i ARM64. Zrzut powyżej pochodzi z działającego paska użytkownika.
+Wydanie przechodzi obie kontrole CI katalogu Windhawk oraz 33 lokalne testy
+regresyjne. Nie przeprowadzono testu uruchomieniowego na ARM64 ani pełnego
+restartu systemu.
 
 Mod korzysta z nieudokumentowanych elementów wewnętrznych paska Windows 11. Duża aktualizacja Windows może zmienić symbole `Taskbar.View.dll`/`ExplorerExtensions.dll`; w takim przypadku należy wyłączyć mod i zaktualizować jego kod.
 
 Kod bieżącej wersji jest udostępniany na licencji [GPL-3.0](LICENSE). Wykorzystuje techniki i fragmenty z modów **taskbar-labels** i **taskbar-start-button-position** Michaela Maltseva (m417z) oraz **Taskbar Start Button Centered Origin** autorstwa rick/rycalvo (GPL-3.0). Technika odnajdywania hosta XAML paska korzysta również z **Taskbar multi-tray** autorstwa EDM115 oraz **Island Media Controls** autorstwa usho (MIT); ich informacja licencyjna pozostaje w kodzie.
 
-## Wersja 0.3.18
+## Rozwój i zgłaszanie błędów
 
-Dodano trwałą kolejność według Appid, pomijanie układów innych pasków przed kosztownym przeliczeniem oraz buforowanie obiektu widgetu w obrębie głównego TaskbarFrame. Testy modeli C++ przechodzą; nowe odczyty identyfikatora i rozpoznawanie układu wymagają potwierdzenia na Windows.
+To repozytorium pozostaje stroną projektu i miejscem przygotowywania zmian.
+Błędy i propozycje można zgłaszać w [GitHub Issues](https://github.com/Artllex/taskbar-split/issues).
+Po sprawdzeniu zmiany są wysyłane do oficjalnego katalogu Windhawk.
 
 Opcja **Enable section dragging** (domyślnie włączona) steruje przeciąganiem w obrębie sekcji. Po wyłączeniu mysz obsługuje Windows; podział paska pozostaje aktywny, ale granice przeciągania nie są wymuszane. Zmiana obowiązuje od następnego gestu.
